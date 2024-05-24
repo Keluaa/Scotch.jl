@@ -7,8 +7,10 @@ version = "1.0.0"
 SCOTCH_jll = "a8d0f55d-b80e-548d-aff6-1a04c175f0f9"
 
 [compat]
-julia = "1.9"
+Aqua = "0.7"
 SCOTCH_jll = "7"
+Test = "1"
+julia = "1.9"
 
 [extras]
 Aqua = "4c88cf16-eb10-579e-8560-4a9242c79595"
