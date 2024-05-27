@@ -5,6 +5,27 @@ include("../gen/LibScotch.jl")
 import .LibScotch: SCOTCH_Num, SCOTCH_GraphPart2
 
 
+"""
+    SCOTCH_Num
+
+Integer type (should be a `Cint`/`Int32` on most machines).
+"""
+SCOTCH_Num
+
+
+"""
+    SCOTCH_GraphPart2
+
+Small integer type (should be a `Cuchar`/`UInt8` on most machines).
+"""
+SCOTCH_GraphPart2
+
+
+"""
+    version()
+
+The version of the loaded SCOTCH library. Calls `SCOTCH_version`.
+"""
 function version()
     major = Ref(Cint(0))
     minor = Ref(Cint(0))
@@ -26,6 +47,11 @@ macro check(call)
 end
 
 
+"""
+    save(obj, filename::AbstractString)
+
+Saves `obj` to the given `filename`.
+"""
 function save(obj, filename::AbstractString)
     open(filename, "w") do file
         save(obj, file)
