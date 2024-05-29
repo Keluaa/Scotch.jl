@@ -159,10 +159,12 @@ end
 
 
 """
-    save(strat::Strat, file::IOStream)
+    save(strat::Strat, file::IO)
 
 Save the `strat` to `file`.
 """
-function save(strat::Strat, file::IOStream)
-    @check LibScotch.SCOTCH_stratSave(strat, file)
+function save(strat::Strat, file::IO)
+    raw_file = Base.Libc.FILE(file)
+    @check LibScotch.SCOTCH_stratSave(strat, raw_file)
+    close(raw_file)
 end

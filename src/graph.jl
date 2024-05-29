@@ -121,8 +121,10 @@ function graph_build(
 end
 
 
-function graph_dump(graph::Graph, file::IOStream, name_prefix::AbstractString, name_suffix::AbstractString)
-    @check LibScotch.SCOTCH_graphDump(graph, file, name_prefix, name_suffix)
+function graph_dump(graph::Graph, file::IO, name_prefix::AbstractString, name_suffix::AbstractString)
+    raw_file = Base.Libc.FILE(file)
+    @check LibScotch.SCOTCH_graphDump(graph, raw_file, name_prefix, name_suffix)
+    close(raw_file)
 end
 
 
@@ -138,25 +140,43 @@ function graph_dump(graph::Graph, filename::AbstractString, name_prefix::Abstrac
 end
 
 
-function save(graph::Graph, file::IOStream)
-    @check LibScotch.SCOTCH_graphSave(graph, file)
+"""
+    save(graph::Graph, file::IO)
+
+Save the `graph` to `file` using `SCOTCH_graphSave`.
+"""
+function save(graph::Graph, file::IO)
+    raw_file = Base.Libc.FILE(file)
+    @check LibScotch.SCOTCH_graphSave(graph, raw_file)
+    close(raw_file)
 end
 
 
 """
-    graph_load(file::IOStream; index_start=nothing, vertex_weights=true, edge_weights=true)
+    graph_load(file::IO; index_start=nothing, vertex_weights=true, edge_weights=true)
+    graph_load(filename::AbstractString; kwargs...)
 
 Load a new [`Graph`](@ref) from `file` with `SCOTCH_graphLoad`.
 
 If `index_start == nothing`, then the base indexing of the file is conserved.
 """
-function graph_load(file::IOStream; index_start=nothing, vertex_weights=true, edge_weights=true)
+function graph_load(file::IO; index_start=nothing, vertex_weights=true, edge_weights=true)
     graph = graph_alloc()
     index_start = isnothing(index_start) ? -1 : index_start  # -1: keep same start
     flagval = SCOTCH_Num(1) * !vertex_weights + SCOTCH_Num(2) * !edge_weights
-    @check LibScotch.SCOTCH_graphLoad(graph, file, index_start, flagval)
+    raw_file = Base.Libc.FILE(file)
+    @check LibScotch.SCOTCH_graphLoad(graph, raw_file, index_start, flagval)
+    close(raw_file)
     return graph
 end
+
+
+function graph_load(filename::AbstractString; kwargs...)
+    open(filename, "r") do file
+        return graph_load(file, kwargs...)
+    end
+end
+
 
 
 """
