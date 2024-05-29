@@ -89,6 +89,69 @@ end
 
 
 """
+    mesh_data(mesh::Mesh)
+
+Returns a `NamedTuple` containing:
+```julia
+(;
+    base_element_index, base_node_index,
+    n_elements, n_nodes, n_arcs, n_edges,
+    adj_idx, adj_idx_end,
+    elements_weights, nodes_weights, vertex_labels,
+    adj_array,
+    max_vertex_degree
+)
+```
+
+Arrays are either `nothing` or wrapped into a `Vector{SCOTCH_Num}`.
+They share the data with the underlying `mesh`.
+"""
+function mesh_data(mesh::Mesh)
+    base_element_index   = Ref{SCOTCH_Num}(0)
+    base_node_index      = Ref{SCOTCH_Num}(0)
+    n_elements           = Ref{SCOTCH_Num}(0)
+    n_nodes              = Ref{SCOTCH_Num}(0)
+    n_arcs               = Ref{SCOTCH_Num}(0)
+    max_vertex_degree    = Ref{SCOTCH_Num}(0)
+
+    adj_idx_ptr          = Ref{Ptr{SCOTCH_Num}}(0)
+    adj_idx_end_ptr      = Ref{Ptr{SCOTCH_Num}}(0)
+    elements_weights_ptr = Ref{Ptr{SCOTCH_Num}}(0)
+    nodes_weights_ptr    = Ref{Ptr{SCOTCH_Num}}(0)
+    vertex_labels_ptr    = Ref{Ptr{SCOTCH_Num}}(0)
+    adj_array_ptr        = Ref{Ptr{SCOTCH_Num}}(0)
+
+    LibScotch.SCOTCH_meshData(mesh,
+        base_element_index, base_node_index, n_elements, n_nodes,
+        adj_idx_ptr, adj_idx_end_ptr, elements_weights_ptr, nodes_weights_ptr, vertex_labels_ptr,
+        n_arcs, adj_array_ptr,
+        max_vertex_degree
+    )
+
+    if adj_idx_end_ptr[] == adj_idx_ptr[] + 1
+        adj_idx_end_ptr[] = C_NULL  # compact array
+        adj_idx_len = n_elements[] + n_nodes[] + 1
+    else
+        adj_idx_len = n_elements[] + n_nodes[]
+    end
+
+    adj_idx          = adj_idx_ptr[]          == C_NULL ? nothing : unsafe_wrap(Vector{SCOTCH_Num}, adj_idx_ptr[],          adj_idx_len)
+    adj_idx_end      = adj_idx_end_ptr[]      == C_NULL ? nothing : unsafe_wrap(Vector{SCOTCH_Num}, adj_idx_end_ptr[],      adj_idx_len)
+    elements_weights = elements_weights_ptr[] == C_NULL ? nothing : unsafe_wrap(Vector{SCOTCH_Num}, elements_weights_ptr[], n_elements[])
+    nodes_weights    = nodes_weights_ptr[]    == C_NULL ? nothing : unsafe_wrap(Vector{SCOTCH_Num}, nodes_weights_ptr[],    n_nodes[])
+    vertex_labels    = vertex_labels_ptr[]    == C_NULL ? nothing : unsafe_wrap(Vector{SCOTCH_Num}, vertex_labels_ptr[],    n_elements[] + n_nodes[])
+    adj_array        = adj_array_ptr[]        == C_NULL ? nothing : unsafe_wrap(Vector{SCOTCH_Num}, adj_array_ptr[],        n_arcs[])  # might be wrong?
+
+    return (;
+        base_element_index=base_element_index[], base_node_index=base_node_index[],
+        n_elements=n_elements[], n_nodes=n_nodes[], n_arcs=n_arcs[], n_edges=n_arcs[] ÷ 2,
+        adj_idx, adj_idx_end,
+        elements_weights, nodes_weights, vertex_labels,
+        adj_array,
+        max_vertex_degree=max_vertex_degree[]
+    )
+end
+
 
 """
     mesh_load(file::IO; index_start=nothing)

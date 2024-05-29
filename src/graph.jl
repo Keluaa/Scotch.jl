@@ -194,6 +194,61 @@ function graph_base_index!(graph::Graph, base_idx)
 end
 
 
+"""
+    graph_data(graph::Graph)
+
+Returns a `NamedTuple` containing:
+```julia
+(;
+    index_start, n_vertices, n_arcs, n_edges,
+    adj_idx, adj_idx_end, vertices_weights,
+    vertices_labels, adj_array, arcs_weights
+)
+```
+
+Arrays are either `nothing` or wrapped into a `Vector{SCOTCH_Num}`.
+They share the data with the underlying `graph`.
+"""
+function graph_data(graph::Graph)
+    base_idx             = Ref{SCOTCH_Num}(0)
+    n_vertices           = Ref{SCOTCH_Num}(0)
+    n_arcs               = Ref{SCOTCH_Num}(0)
+
+    adj_idx_ptr          = Ref{Ptr{SCOTCH_Num}}(0)
+    adj_idx_end_ptr      = Ref{Ptr{SCOTCH_Num}}(0)
+    vertices_weights_ptr = Ref{Ptr{SCOTCH_Num}}(0)
+    vertices_labels_ptr  = Ref{Ptr{SCOTCH_Num}}(0)
+    adj_array_ptr        = Ref{Ptr{SCOTCH_Num}}(0)
+    arcs_weights_ptr     = Ref{Ptr{SCOTCH_Num}}(0)
+
+    LibScotch.SCOTCH_graphData(graph, base_idx,
+        n_vertices, adj_idx_ptr, adj_idx_end_ptr, vertices_weights_ptr, vertices_labels_ptr,
+        n_arcs, adj_array_ptr, arcs_weights_ptr
+    )
+
+    if adj_idx_end_ptr[] == adj_idx_ptr[] + 1
+        adj_idx_end_ptr[] = C_NULL  # compact array
+        adj_idx_len = n_vertices[] + 1
+    else
+        adj_idx_len = n_vertices[]
+    end
+
+    adj_idx          = adj_idx_ptr[]          == C_NULL ? nothing : unsafe_wrap(Vector{SCOTCH_Num}, adj_idx_ptr[],          adj_idx_len)
+    adj_idx_end      = adj_idx_end_ptr[]      == C_NULL ? nothing : unsafe_wrap(Vector{SCOTCH_Num}, adj_idx_end_ptr[],      n_vertices[])
+    vertices_weights = vertices_weights_ptr[] == C_NULL ? nothing : unsafe_wrap(Vector{SCOTCH_Num}, vertices_weights_ptr[], n_vertices[])
+    vertices_labels  = vertices_labels_ptr[]  == C_NULL ? nothing : unsafe_wrap(Vector{SCOTCH_Num}, vertices_labels_ptr[],  n_vertices[])
+    adj_array        = adj_array_ptr[]        == C_NULL ? nothing : unsafe_wrap(Vector{SCOTCH_Num}, adj_array_ptr[],        n_arcs[])  # might be wrong?
+    arcs_weights     = arcs_weights_ptr[]     == C_NULL ? nothing : unsafe_wrap(Vector{SCOTCH_Num}, arcs_weights_ptr[],     n_arcs[])
+
+    return (;
+        index_start = base_idx[],
+        n_vertices=n_vertices[], n_arcs=n_arcs[], n_edges=n_arcs[] ÷ 2,
+        adj_idx, adj_idx_end,
+        vertices_weights, vertices_labels,
+        adj_array, arcs_weights
+    )
+end
+
 
 """
     graph_coarsen(fine_graph::Graph, n_vertices, coarsening_ratio;
