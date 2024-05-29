@@ -38,11 +38,17 @@ end
 macro check(call)
     !Base.isexpr(call, :call) && error("expected function call, got: $call")
     func_name = call.args[1]
+
+    # Unwrap `LibScotch.func_name` to `func_name`
+    while Base.isexpr(func_name, :., 2)
+        func_name = func_name.args[2]
+        func_name isa QuoteNode && (func_name = func_name.value)
+    end
+
+    error_str = Expr(:string, "call to ", string(func_name), " returned ", :ret)
     return esc(quote
         ret = $call
-        if ret != 0
-            error("SCOTCH call to $(func_name) returned $ret")
-        end
+        ret != 0 && error($error_str)
     end)
 end
 
