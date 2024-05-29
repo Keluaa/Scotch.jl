@@ -9,9 +9,6 @@ preventing them from being GC'ed by Julia.
 """
 mutable struct Graph
     ptr         :: Ptr{LibScotch.SCOTCH_Graph}
-    n_vertices  :: SCOTCH_Num
-    n_edges     :: SCOTCH_Num
-    index_start :: SCOTCH_Num
     adj_index   :: Vector{SCOTCH_Num}
     adj_array   :: Vector{SCOTCH_Num}
     v_weights   :: Union{Vector{SCOTCH_Num}, Nothing}
@@ -35,7 +32,7 @@ Finalizers will properly call `SCOTCH_graphExit` then `SCOTCH_memFree` once unus
 function graph_alloc()
     graph_ptr = LibScotch.SCOTCH_graphAlloc()
     graph = Graph(
-        graph_ptr, 0, 0, 0, Vector{SCOTCH_Num}(), Vector{SCOTCH_Num}(),
+        graph_ptr, Vector{SCOTCH_Num}(), Vector{SCOTCH_Num}(),
         nothing, nothing, nothing, nothing, nothing
     )
     @check LibScotch.SCOTCH_graphInit(graph)
@@ -47,19 +44,17 @@ function graph_alloc()
 end
 
 
-function graph_size(graph::Ptr{LibScotch.SCOTCH_Graph})
-    n_vertices = Ref(SCOTCH_Num(0))
-    n_edges = Ref(SCOTCH_Num(0))
-    LibScotch.SCOTCH_graphSize(graph, n_vertices, n_edges)
-    return n_vertices[], n_edges[]
-end
-
 """
     graph_size(graph::Graph)
 
-Number of vertices and edges of the `graph`.
+Number of vertices and edges (arcs) of the `graph`.
 """
-graph_size(graph::Graph) = graph.n_vertices, graph.n_edges
+function graph_size(graph::Graph)
+    n_vertices = Ref(SCOTCH_Num(0))
+    n_edges = Ref(SCOTCH_Num(0))
+    LibScotch.SCOTCH_graphSize(graph, n_vertices, n_edges)
+    return (; vertices=n_vertices[], edges=n_edges[])
+end
 
 
 """
@@ -108,9 +103,6 @@ function graph_build(
 
     # Since SCOTCH does not do copies, all data is shared: therefore we must keep all arrays alive
     # together. The best way to do this is be grouping them all in the same object.
-    graph.n_vertices = vertnbr
-    graph.n_edges = edgenbr
-    graph.index_start = index_start
     graph.adj_index = adj_index
     graph.adj_array = adj_array
     graph.v_weights = v_weights
@@ -178,6 +170,30 @@ function graph_load(filename::AbstractString; kwargs...)
 end
 
 
+"""
+    graph_base_index(graph::Graph)
+
+Return the base index of `graph`, using `SCOTCH_graphData`.
+"""
+function graph_base_index(graph::Graph)
+    base_idx = Ref{SCOTCH_Num}(0)
+    LibScotch.SCOTCH_graphData(graph, base_idx,
+        C_NULL, C_NULL, C_NULL, C_NULL, C_NULL, C_NULL, C_NULL, C_NULL
+    )
+    return base_idx[]
+end
+
+
+"""
+    graph_base_index!(graph::Graph, base_idx)
+
+Sets the base index of `graph` using `SCOTCH_graphBase`
+"""
+function graph_base_index!(graph::Graph, base_idx)
+    return LibScotch.SCOTCH_graphBase(graph, base_idx)
+end
+
+
 
 """
     graph_coarsen(fine_graph::Graph, n_vertices, coarsening_ratio;
@@ -231,7 +247,7 @@ function graph_coarsen_match(fine_graph::Graph, n_vertices, coarsening_ratio;
     no_merge=false, fine_mates::Union{Vector{SCOTCH_Num}, Nothing}=nothing
 )
     if isnothing(fine_mates)
-        fine_mates = Vector{SCOTCH_Num}(undef, fine_graph.n_vertices)
+        fine_mates = Vector{SCOTCH_Num}(undef, graph_size(fine_graph).vertices)
     end
 
     flagval = SCOTCH_Num(0)
@@ -253,7 +269,7 @@ Compute a coloring of the `graph` using `SCOTCH_graphColor`. Returns `(n_colors,
 """
 function graph_color(graph::Graph; colors::Union{Vector{SCOTCH_Num}, Nothing}=nothing)
     if isnothing(colors)
-        colors = Vector{SCOTCH_Num}(undef, graph.n_vertices)
+        colors = Vector{SCOTCH_Num}(undef, graph_size(graph).vertices)
     end
 
     flagval = SCOTCH_Num(0)
@@ -339,14 +355,16 @@ Returns `partition` while conserving the base index of the `graph`.
 If `fixed == true`, then `partition` gives the fixed vertices and `SCOTCH_graphMapFixed` is used instead.
 """
 function graph_map(graph::Graph, arch::Arch, strat::Strat; partition=nothing, fixed=false)
+    index_start = graph_base_index(graph)
+
     if fixed
         isnothing(partition) && throw(ArgumentError("`fixed=true` requires `partition`"))
-        graph.index_start != 0 && for (i, v) in enumerate(partition)
+        index_start != 0 && for (i, v) in enumerate(partition)
             # Keep fixed vertices, move others to 0:n_vertices-1
-            partition[i] = ifelse(v == -1, v, v - graph.index_start)
+            partition[i] = ifelse(v == -1, v, v - index_start)
         end
     elseif isnothing(partition)
-        partition = Vector{SCOTCH_Num}(undef, graph.n_vertices)
+        partition = Vector{SCOTCH_Num}(undef, graph_size(graph).vertices)
     end
 
     if fixed
@@ -355,7 +373,7 @@ function graph_map(graph::Graph, arch::Arch, strat::Strat; partition=nothing, fi
         @check LibScotch.SCOTCH_graphMap(graph, arch, strat, partition)
     end
 
-    graph.index_start != 0 && (partition .+= graph.index_start)
+    index_start != 0 && (partition .+= index_start)
     return partition
 end
 
@@ -377,14 +395,16 @@ function graph_remap(
     cost_factor::Float64, costs::Vector{SCOTCH_Num}, strat::Strat;
     partition=nothing, fixed=false
 )
+    index_start = graph_base_index(graph)
+
     if fixed
         isnothing(partition) && throw(ArgumentError("`fixed=true` requires `partition`"))
-        graph.index_start != 0 && for (i, v) in enumerate(partition)
+        index_start != 0 && for (i, v) in enumerate(partition)
             # Keep fixed vertices, move others to 0:n_vertices-1
-            partition[i] = ifelse(v == -1, v, v - graph.index_start)
+            partition[i] = ifelse(v == -1, v, v - index_start)
         end
     elseif isnothing(partition)
-        partition = Vector{SCOTCH_Num}(undef, graph.n_vertices)
+        partition = Vector{SCOTCH_Num}(undef, graph_size(graph).vertices)
     end
 
     if fixed
@@ -393,7 +413,7 @@ function graph_remap(
         @check LibScotch.SCOTCH_graphRemap(graph, arch, old_partition, cost_factor, costs, strat, partition)
     end
 
-    graph.index_start != 0 && (partition .+= graph.index_start)
+    index_start != 0 && (partition .+= index_start)
     return partition
 end
 
@@ -409,15 +429,17 @@ If `fixed == true`, then `partition` gives the fixed vertices and `SCOTCH_graphP
 If `overlap == true`, then `SCOTCH_graphPartOvl` is used instead.
 """
 function graph_part(graph::Graph, parts, strat::Strat; partition=nothing, fixed=false, overlap=false)
+    index_start = graph_base_index(graph)
+
     if fixed
         overlap && throw(ArgumentError("`fixed` and `overlap` are mutually exclusive"))
         isnothing(partition) && throw(ArgumentError("`fixed=true` requires `partition`"))
-        graph.index_start != 0 && for (i, v) in enumerate(partition)
+        index_start != 0 && for (i, v) in enumerate(partition)
             # Keep fixed vertices, move others to 0:n_vertices-1
-            partition[i] = ifelse(v == -1, v, v - graph.index_start)
+            partition[i] = ifelse(v == -1, v, v - index_start)
         end
     elseif isnothing(partition)
-        partition = Vector{SCOTCH_Num}(undef, graph.n_vertices)
+        partition = Vector{SCOTCH_Num}(undef, graph_size(graph).vertices)
     end
 
     if fixed
@@ -428,13 +450,13 @@ function graph_part(graph::Graph, parts, strat::Strat; partition=nothing, fixed=
         @check LibScotch.SCOTCH_graphPart(graph, parts, strat, partition)
     end
 
-    if graph.index_start != 0
+    if index_start != 0
         if overlap
             for (i, v) in enumerate(partition)
-                partition[i] = ifelse(v == -1, v, v - graph.index_start)
+                partition[i] = ifelse(v == -1, v, v - index_start)
             end
         else
-            partition .+= graph.index_start
+            partition .+= index_start
         end
     end
     return partition
@@ -458,14 +480,16 @@ function graph_repart(
     cost_factor::Float64, costs::Vector{SCOTCH_Num}, strat::Strat;
     partition=nothing, fixed=false
 )
+    index_start = graph_base_index(graph)
+
     if fixed
         isnothing(partition) && throw(ArgumentError("`fixed=true` requires `partition`"))
-        graph.index_start != 0 && for (i, v) in enumerate(partition)
+        index_start != 0 && for (i, v) in enumerate(partition)
             # Keep fixed vertices, move others to 0:n_vertices-1
-            partition[i] = ifelse(v == -1, v, v - graph.index_start)
+            partition[i] = ifelse(v == -1, v, v - index_start)
         end
     elseif isnothing(partition)
-        partition = Vector{SCOTCH_Num}(undef, graph.n_vertices)
+        partition = Vector{SCOTCH_Num}(undef, graph_size(graph).vertices)
     end
 
     if fixed
@@ -474,6 +498,6 @@ function graph_repart(
         @check LibScotch.SCOTCH_graphRepart(graph, parts, old_partition, cost_factor, costs, strat, partition)
     end
 
-    graph.index_start != 0 && (partition .+= graph.index_start)
+    index_start != 0 && (partition .+= index_start)
     return partition
 end

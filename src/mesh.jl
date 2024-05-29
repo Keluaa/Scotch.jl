@@ -155,7 +155,7 @@ function mesh_size(mesh::Mesh)
     n_elements = Ref{SCOTCH_Num}()
     n_nodes = Ref{SCOTCH_Num}()
     n_edges = Ref{SCOTCH_Num}()
-    @check LibScotch.SCOTCH_meshSize(mesh, n_elements, n_nodes, n_edges)
+    LibScotch.SCOTCH_meshSize(mesh, n_elements, n_nodes, n_edges)
     return (; elements=n_elements[], nodes=n_nodes[], edges=n_edges[])
 end
 
@@ -216,7 +216,7 @@ function block_ordering(graph_or_mesh::Union{Graph, Mesh}, strat::Strat;
     num_v = if graph_or_mesh isa Mesh
         mesh_size(graph_or_mesh).nodes
     else
-        graph_or_mesh.n_vertices
+        graph_size(graph_or_mesh).vertices
     end
 
     permtab = alloc_or_not(permutation, num_v)
