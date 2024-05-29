@@ -43,7 +43,7 @@ end
 
 """
     mesh_build(adj_index::Vector{SCOTCH_Num}, adj_array::Vector{SCOTCH_Num}, elem_count, node_count;
-        index_start_element=1, index_start_node=1, check=true,
+        index_start_element=1, index_start_node=1, check=true, arc_count=length(adj_array),
         adj_index_end::Union{Vector{SCOTCH_Num}, Nothing}=nothing,
         element_load ::Union{Vector{SCOTCH_Num}, Nothing}=nothing,
         vertex_load  ::Union{Vector{SCOTCH_Num}, Nothing}=nothing,
@@ -52,10 +52,12 @@ end
 
 Allocate and initialize a new [`Mesh`](@ref) using `SCOTCH_meshBuild`.
 
+`arc_count` is twice the number of edges. The default value assumes that `adj_array` is compact.
+
 If `check == true`, then `SCOTCH_meshCheck` may throw an error if the mesh is invalid.
 """
 function mesh_build(adj_index::Vector{SCOTCH_Num}, adj_array::Vector{SCOTCH_Num}, elem_count, node_count;
-    index_start_element=1, index_start_node=1, check=true,
+    index_start_element=1, index_start_node=1, check=true, arc_count=length(adj_array),
     adj_index_end::Union{Vector{SCOTCH_Num}, Nothing}=nothing,
     element_load ::Union{Vector{SCOTCH_Num}, Nothing}=nothing,
     vertex_load  ::Union{Vector{SCOTCH_Num}, Nothing}=nothing,
@@ -71,7 +73,7 @@ function mesh_build(adj_index::Vector{SCOTCH_Num}, adj_array::Vector{SCOTCH_Num}
     @check LibScotch.SCOTCH_meshBuild(mesh,
         index_start_element, index_start_node, elem_count, node_count,
         adj_index, vendtab, velotab, vnlotab, vlbltab,
-        length(adj_array), adj_array
+        arc_count, adj_array
     )
 
     check && @check LibScotch.SCOTCH_meshCheck(mesh)
@@ -237,7 +239,7 @@ function mesh_stat(mesh::Mesh)
     vnloavg = Ref{Float64}(0.0);  vnlodlt = Ref{Float64}(0.0)
     edegavg = Ref{Float64}(0.0);  edegdlt = Ref{Float64}(0.0)
     ndegavg = Ref{Float64}(0.0);  ndegdlt = Ref{Float64}(0.0)
-    @check LibScotch.SCOTCH_meshStat(mesh,
+    LibScotch.SCOTCH_meshStat(mesh,
         vnlomin, vnlomax, vnlosum, vnloavg, vnlodlt,
         edegmin, edegmax, edegavg, edegdlt,
         ndegmin, ndegmax, ndegavg, ndegdlt

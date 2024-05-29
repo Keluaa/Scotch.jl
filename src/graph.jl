@@ -61,7 +61,7 @@ end
     graph_build(
         adj_index::Vector{SCOTCH_Num}, adj_array::Vector{SCOTCH_Num};
         index_start=1, check=true,
-        adj_index_end::Union{Vector{SCOTCH_Num}, Nothing}=nothing,
+        adj_idx_end::Union{Vector{SCOTCH_Num}, Nothing}=nothing,
         v_weights::Union{Vector{SCOTCH_Num}, Nothing}=nothing,
         e_weights::Union{Vector{SCOTCH_Num}, Nothing}=nothing,
         labels::Union{Vector{SCOTCH_Num}, Nothing}=nothing
@@ -71,28 +71,28 @@ Allocate and initialize a new [`Graph`](@ref) using `SCOTCH_graphBuild`.
 
 If `check == true`, then `SCOTCH_graphCheck` may throw an error if the graph is invalid.
 
-If `adj_index_end` is given, `adj_index` is considered to be non-compact.
+If `adj_idx_end` is given, `adj_index` is considered to be non-compact.
 """
 function graph_build(
     adj_index::Vector{SCOTCH_Num}, adj_array::Vector{SCOTCH_Num};
     index_start=1, check=true,
-    adj_index_end::Union{Vector{SCOTCH_Num}, Nothing}=nothing,
+    adj_idx_end::Union{Vector{SCOTCH_Num}, Nothing}=nothing,
     v_weights::Union{Vector{SCOTCH_Num}, Nothing}=nothing,
     e_weights::Union{Vector{SCOTCH_Num}, Nothing}=nothing,
     labels::Union{Vector{SCOTCH_Num}, Nothing}=nothing
 )
     graph = graph_alloc()
 
-    vertnbr = isnothing(adj_index_end) ? SCOTCH_Num(length(adj_index)+1) : SCOTCH_Num(length(adj_index))
+    vertnbr = isnothing(adj_idx_end) ? SCOTCH_Num(length(adj_index) - 1) : SCOTCH_Num(length(adj_index))
     edgenbr = SCOTCH_Num(length(adj_array))
 
     verttab = pointer(adj_index)
     edgetab = pointer(adj_array)
 
-    vendtab = isnothing(adj_index_end) ? C_NULL : pointer(adj_index_end)
-    velotab = isnothing(v_weights)     ? C_NULL : pointer(v_weights)
-    edlotab = isnothing(e_weights)     ? C_NULL : pointer(e_weights)
-    vlbltab = isnothing(labels)        ? C_NULL : pointer(labels)
+    vendtab = isnothing(adj_idx_end) ? C_NULL : pointer(adj_idx_end)
+    velotab = isnothing(v_weights)   ? C_NULL : pointer(v_weights)
+    edlotab = isnothing(e_weights)   ? C_NULL : pointer(e_weights)
+    vlbltab = isnothing(labels)      ? C_NULL : pointer(labels)
 
     @check LibScotch.SCOTCH_graphBuild(graph, index_start,
         vertnbr, verttab, vendtab, velotab, vlbltab,
@@ -107,7 +107,7 @@ function graph_build(
     graph.adj_array = adj_array
     graph.v_weights = v_weights
     graph.e_weights = e_weights
-    graph.adj_index_end = adj_index_end
+    graph.adj_idx_end = adj_idx_end
     graph.labels = labels
     return graph
 end
@@ -388,7 +388,7 @@ function graph_stat(graph::Graph)
     veloavg = Ref{Float64}(0.0);  velodlt = Ref{Float64}(0.0)
     degravg = Ref{Float64}(0.0);  degrdlt = Ref{Float64}(0.0)
     edloavg = Ref{Float64}(0.0);  edlodlt = Ref{Float64}(0.0)
-    @check LibScotch.SCOTCH_graphStat(graph,
+    LibScotch.SCOTCH_graphStat(graph,
         velomin, velomax, velosum, veloavg, velodlt,
         degrmin, degrmax, degravg, degrdlt,
         edlomin, edlomax, edlosum, edloavg, edlodlt

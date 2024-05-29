@@ -68,21 +68,6 @@ end
 
 
 """
-    strat(strategy, partitions, imbalance_ratio; kwargs...)
-
-Allocate and initialize a new mapping [`Strat`](@ref) using `SCOTCH_stratGraphMapBuild`.
-
-`strategy` and `kwargs` are passed to [`strat_flags`](@ref).
-"""
-function strat(strategy, partitions, imbalance_ratio; kwargs...)
-    flagval = strat_flags(; strategy, kwargs...)
-    strat = strat_alloc()
-    @check LibScotch.SCOTCH_stratGraphMapBuild(strat, flagval, partitions, imbalance_ratio)
-    return strat
-end
-
-
-"""
     strat(type::Symbol, strategy::AbstractString)
 
 Allocate and initialize a new [`Strat`](@ref) from the given `strategy` string.
