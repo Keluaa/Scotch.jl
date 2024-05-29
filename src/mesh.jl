@@ -89,22 +89,41 @@ end
 
 
 """
-    mesh_load(file::IOStream; index_start=nothing)
+
+"""
+    mesh_load(file::IO; index_start=nothing)
+    mesh_load(filename::AbstractString; kwargs...)
 
 Load a new [`Mesh`](@ref) from `file` with `SCOTCH_meshLoad`.
 
 If `index_start == nothing`, then the base indexing of the file is conserved.
 """
-function mesh_load(file::IOStream; index_start=nothing)
+function mesh_load(file::IO; index_start=nothing)
     mesh = mesh_alloc()
     index_start = isnothing(index_start) ? -1 : index_start
-    @check LibScotch.SCOTCH_meshLoad(mesh, file, index_start)
+    raw_file = Base.Libc.FILE(file)
+    @check LibScotch.SCOTCH_meshLoad(mesh, raw_file, index_start)
+    close(raw_file)
     return mesh
 end
 
 
-function save(mesh::Mesh, file::IOStream)
-    @check LibScotch.SCOTCH_meshSave(mesh, file)
+function mesh_load(filename::AbstractString; kwargs...)
+    open(filename, "r") do file
+        return mesh_load(file; kwargs...)
+    end
+end
+
+
+"""
+    save(mesh::Mesh, file::IO)
+
+Save the `mesh` to `file` using `SCOTCH_meshSave`.
+"""
+function save(mesh::Mesh, file::IO)
+    raw_file = Base.Libc.FILE(file)
+    @check LibScotch.SCOTCH_meshSave(mesh, raw_file)
+    close(raw_file)
 end
 
 

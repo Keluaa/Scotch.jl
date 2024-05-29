@@ -32,14 +32,15 @@ end
 
 """
     arch_load(filename::AbstractString)    
-    arch_load(file::IOStream)
+    arch_load(file::IO)
 
 Load a new [`Arch`](@ref) from the given file. See `SCOTCH_archLoad`.
 """
-function arch_load(file::IOStream)
+function arch_load(file::IO)
     arch = arch_alloc()
-    fd_ptr = Ref(Cint(fd(file)))
-    @check LibScotch.SCOTCH_archLoad(arch, fd_ptr)
+    raw_file = Base.Libc.FILE(file)
+    @check LibScotch.SCOTCH_archLoad(arch, raw_file)
+    close(raw_file)
     return arch
 end
 
@@ -51,8 +52,15 @@ function arch_load(filename::AbstractString)
 end
 
 
-function save(arch::Arch, file::IOStream)
-    @check LibScotch.SCOTCH_archSave(arch, file)
+"""
+    save(arch::Arch, file::IO)
+
+Save the `arch` to `file` using `SCOTCH_archSave`.
+"""
+function save(arch::Arch, file::IO)
+    raw_file = Base.Libc.FILE(file)
+    @check LibScotch.SCOTCH_archSave(arch, raw_file)
+    close(raw_file)
     return arch
 end
 
