@@ -49,6 +49,8 @@ Graph
 graph_alloc
 graph_size
 graph_build
+graph_base_index
+graph_base_index!
 graph_dump
 graph_load
 graph_coarsen
