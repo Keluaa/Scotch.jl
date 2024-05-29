@@ -4,3 +4,4 @@ output_file_path = "./LibScotch.jl"
 module_name = "LibScotch"
 jll_pkg_name = "SCOTCH_jll"
 export_symbol_prefixes = ["SCOTCH_"]
+prologue_file_path = "./prologue.jl"

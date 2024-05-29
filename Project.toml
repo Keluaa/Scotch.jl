@@ -4,10 +4,12 @@ authors = ["Keluaa <34173752+Keluaa@users.noreply.github.com> and contributors"]
 version = "1.0.0"
 
 [deps]
+CEnum = "fa961155-64e5-5f13-b03f-caf6b980ea82"
 SCOTCH_jll = "a8d0f55d-b80e-548d-aff6-1a04c175f0f9"
 
 [compat]
 Aqua = "0.7"
+CEnum = "0.5"
 SCOTCH_jll = "7"
 Test = "1"
 julia = "1.9"

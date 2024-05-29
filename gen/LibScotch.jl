@@ -3,6 +3,11 @@ module LibScotch
 using SCOTCH_jll
 export SCOTCH_jll
 
+using CEnum
+
+const SCOTCH_VERSION_NUM = pkgversion(SCOTCH_jll).major
+const SCOTCH_RELEASE_NUM = pkgversion(SCOTCH_jll).minor
+const SCOTCH_PATCHLEVEL_NUM = pkgversion(SCOTCH_jll).patch
 
 const SCOTCH_Idx = Cint
 
@@ -39,7 +44,7 @@ struct SCOTCH_Mapping
 end
 
 struct SCOTCH_Ordering
-    dummy::NTuple{17, Cdouble}
+    dummy::NTuple{12, Cdouble}
 end
 
 struct SCOTCH_Strat
@@ -63,11 +68,11 @@ function SCOTCH_archExit(arg1)
 end
 
 function SCOTCH_archLoad(arg1, arg2)
-    ccall((:SCOTCH_archLoad, libscotch), Cint, (Ptr{SCOTCH_Arch}, Ptr{Cint}), arg1, arg2)
+    ccall((:SCOTCH_archLoad, libscotch), Cint, (Ptr{SCOTCH_Arch}, Ptr{Libc.FILE}), arg1, arg2)
 end
 
 function SCOTCH_archSave(arg1, arg2)
-    ccall((:SCOTCH_archSave, libscotch), Cint, (Ptr{SCOTCH_Arch}, Ptr{Cint}), arg1, arg2)
+    ccall((:SCOTCH_archSave, libscotch), Cint, (Ptr{SCOTCH_Arch}, Ptr{Libc.FILE}), arg1, arg2)
 end
 
 function SCOTCH_archBuild(arg1, arg2, arg3, arg4, arg5)
@@ -283,11 +288,11 @@ function SCOTCH_graphFree(arg1)
 end
 
 function SCOTCH_graphLoad(arg1, arg2, arg3, arg4)
-    ccall((:SCOTCH_graphLoad, libscotch), Cint, (Ptr{SCOTCH_Graph}, Ptr{Cint}, SCOTCH_Num, SCOTCH_Num), arg1, arg2, arg3, arg4)
+    ccall((:SCOTCH_graphLoad, libscotch), Cint, (Ptr{SCOTCH_Graph}, Ptr{Libc.FILE}, SCOTCH_Num, SCOTCH_Num), arg1, arg2, arg3, arg4)
 end
 
 function SCOTCH_graphSave(arg1, arg2)
-    ccall((:SCOTCH_graphSave, libscotch), Cint, (Ptr{SCOTCH_Graph}, Ptr{Cint}), arg1, arg2)
+    ccall((:SCOTCH_graphSave, libscotch), Cint, (Ptr{SCOTCH_Graph}, Ptr{Libc.FILE}), arg1, arg2)
 end
 
 function SCOTCH_graphBuild(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10)
@@ -335,35 +340,35 @@ function SCOTCH_graphDiamPV(arg1)
 end
 
 function SCOTCH_graphDump(arg1, arg2, arg3, arg4)
-    ccall((:SCOTCH_graphDump, libscotch), Cint, (Ptr{SCOTCH_Graph}, Ptr{Cchar}, Ptr{Cchar}, Ptr{Cint}), arg1, arg2, arg3, arg4)
+    ccall((:SCOTCH_graphDump, libscotch), Cint, (Ptr{SCOTCH_Graph}, Ptr{Cchar}, Ptr{Cchar}, Ptr{Libc.FILE}), arg1, arg2, arg3, arg4)
 end
 
 function SCOTCH_graphGeomLoadChac(arg1, arg2, arg3, arg4, arg5)
-    ccall((:SCOTCH_graphGeomLoadChac, libscotch), Cint, (Ptr{SCOTCH_Graph}, Ptr{SCOTCH_Geom}, Ptr{Cint}, Ptr{Cint}, Ptr{Cchar}), arg1, arg2, arg3, arg4, arg5)
+    ccall((:SCOTCH_graphGeomLoadChac, libscotch), Cint, (Ptr{SCOTCH_Graph}, Ptr{SCOTCH_Geom}, Ptr{Libc.FILE}, Ptr{Libc.FILE}, Ptr{Cchar}), arg1, arg2, arg3, arg4, arg5)
 end
 
 function SCOTCH_graphGeomLoadHabo(arg1, arg2, arg3, arg4, arg5)
-    ccall((:SCOTCH_graphGeomLoadHabo, libscotch), Cint, (Ptr{SCOTCH_Graph}, Ptr{SCOTCH_Geom}, Ptr{Cint}, Ptr{Cint}, Ptr{Cchar}), arg1, arg2, arg3, arg4, arg5)
+    ccall((:SCOTCH_graphGeomLoadHabo, libscotch), Cint, (Ptr{SCOTCH_Graph}, Ptr{SCOTCH_Geom}, Ptr{Libc.FILE}, Ptr{Libc.FILE}, Ptr{Cchar}), arg1, arg2, arg3, arg4, arg5)
 end
 
 function SCOTCH_graphGeomLoadMmkt(arg1, arg2, arg3, arg4, arg5)
-    ccall((:SCOTCH_graphGeomLoadMmkt, libscotch), Cint, (Ptr{SCOTCH_Graph}, Ptr{SCOTCH_Geom}, Ptr{Cint}, Ptr{Cint}, Ptr{Cchar}), arg1, arg2, arg3, arg4, arg5)
+    ccall((:SCOTCH_graphGeomLoadMmkt, libscotch), Cint, (Ptr{SCOTCH_Graph}, Ptr{SCOTCH_Geom}, Ptr{Libc.FILE}, Ptr{Libc.FILE}, Ptr{Cchar}), arg1, arg2, arg3, arg4, arg5)
 end
 
 function SCOTCH_graphGeomLoadScot(arg1, arg2, arg3, arg4, arg5)
-    ccall((:SCOTCH_graphGeomLoadScot, libscotch), Cint, (Ptr{SCOTCH_Graph}, Ptr{SCOTCH_Geom}, Ptr{Cint}, Ptr{Cint}, Ptr{Cchar}), arg1, arg2, arg3, arg4, arg5)
+    ccall((:SCOTCH_graphGeomLoadScot, libscotch), Cint, (Ptr{SCOTCH_Graph}, Ptr{SCOTCH_Geom}, Ptr{Libc.FILE}, Ptr{Libc.FILE}, Ptr{Cchar}), arg1, arg2, arg3, arg4, arg5)
 end
 
 function SCOTCH_graphGeomSaveChac(arg1, arg2, arg3, arg4, arg5)
-    ccall((:SCOTCH_graphGeomSaveChac, libscotch), Cint, (Ptr{SCOTCH_Graph}, Ptr{SCOTCH_Geom}, Ptr{Cint}, Ptr{Cint}, Ptr{Cchar}), arg1, arg2, arg3, arg4, arg5)
+    ccall((:SCOTCH_graphGeomSaveChac, libscotch), Cint, (Ptr{SCOTCH_Graph}, Ptr{SCOTCH_Geom}, Ptr{Libc.FILE}, Ptr{Libc.FILE}, Ptr{Cchar}), arg1, arg2, arg3, arg4, arg5)
 end
 
 function SCOTCH_graphGeomSaveMmkt(arg1, arg2, arg3, arg4, arg5)
-    ccall((:SCOTCH_graphGeomSaveMmkt, libscotch), Cint, (Ptr{SCOTCH_Graph}, Ptr{SCOTCH_Geom}, Ptr{Cint}, Ptr{Cint}, Ptr{Cchar}), arg1, arg2, arg3, arg4, arg5)
+    ccall((:SCOTCH_graphGeomSaveMmkt, libscotch), Cint, (Ptr{SCOTCH_Graph}, Ptr{SCOTCH_Geom}, Ptr{Libc.FILE}, Ptr{Libc.FILE}, Ptr{Cchar}), arg1, arg2, arg3, arg4, arg5)
 end
 
 function SCOTCH_graphGeomSaveScot(arg1, arg2, arg3, arg4, arg5)
-    ccall((:SCOTCH_graphGeomSaveScot, libscotch), Cint, (Ptr{SCOTCH_Graph}, Ptr{SCOTCH_Geom}, Ptr{Cint}, Ptr{Cint}, Ptr{Cchar}), arg1, arg2, arg3, arg4, arg5)
+    ccall((:SCOTCH_graphGeomSaveScot, libscotch), Cint, (Ptr{SCOTCH_Graph}, Ptr{SCOTCH_Geom}, Ptr{Libc.FILE}, Ptr{Libc.FILE}, Ptr{Cchar}), arg1, arg2, arg3, arg4, arg5)
 end
 
 function SCOTCH_graphInduceList(arg1, arg2, arg3, arg4)
@@ -383,11 +388,11 @@ function SCOTCH_graphMapExit(arg1, arg2)
 end
 
 function SCOTCH_graphMapLoad(arg1, arg2, arg3)
-    ccall((:SCOTCH_graphMapLoad, libscotch), Cint, (Ptr{SCOTCH_Graph}, Ptr{SCOTCH_Mapping}, Ptr{Cint}), arg1, arg2, arg3)
+    ccall((:SCOTCH_graphMapLoad, libscotch), Cint, (Ptr{SCOTCH_Graph}, Ptr{SCOTCH_Mapping}, Ptr{Libc.FILE}), arg1, arg2, arg3)
 end
 
 function SCOTCH_graphMapSave(arg1, arg2, arg3)
-    ccall((:SCOTCH_graphMapSave, libscotch), Cint, (Ptr{SCOTCH_Graph}, Ptr{SCOTCH_Mapping}, Ptr{Cint}), arg1, arg2, arg3)
+    ccall((:SCOTCH_graphMapSave, libscotch), Cint, (Ptr{SCOTCH_Graph}, Ptr{SCOTCH_Mapping}, Ptr{Libc.FILE}), arg1, arg2, arg3)
 end
 
 function SCOTCH_graphMapCompute(arg1, arg2, arg3)
@@ -407,7 +412,7 @@ function SCOTCH_graphMapFixed(arg1, arg2, arg3, arg4)
 end
 
 function SCOTCH_graphMapView(arg1, arg2, arg3)
-    ccall((:SCOTCH_graphMapView, libscotch), Cint, (Ptr{SCOTCH_Graph}, Ptr{SCOTCH_Mapping}, Ptr{Cint}), arg1, arg2, arg3)
+    ccall((:SCOTCH_graphMapView, libscotch), Cint, (Ptr{SCOTCH_Graph}, Ptr{SCOTCH_Mapping}, Ptr{Libc.FILE}), arg1, arg2, arg3)
 end
 
 function SCOTCH_graphPart(arg1, arg2, arg3, arg4)
@@ -423,7 +428,7 @@ function SCOTCH_graphPartOvl(arg1, arg2, arg3, arg4)
 end
 
 function SCOTCH_graphPartOvlView(arg1, arg2, arg3, arg4)
-    ccall((:SCOTCH_graphPartOvlView, libscotch), Cint, (Ptr{SCOTCH_Graph}, SCOTCH_Num, Ptr{SCOTCH_Num}, Ptr{Cint}), arg1, arg2, arg3, arg4)
+    ccall((:SCOTCH_graphPartOvlView, libscotch), Cint, (Ptr{SCOTCH_Graph}, SCOTCH_Num, Ptr{SCOTCH_Num}, Ptr{Libc.FILE}), arg1, arg2, arg3, arg4)
 end
 
 function SCOTCH_graphRemap(arg1, arg2, arg3, arg4, arg5, arg6, arg7)
@@ -443,11 +448,11 @@ function SCOTCH_graphRemapFixedCompute(arg1, arg2, arg3, arg4, arg5, arg6)
 end
 
 function SCOTCH_graphRemapView(arg1, arg2, arg3, arg4, arg5, arg6)
-    ccall((:SCOTCH_graphRemapView, libscotch), Cint, (Ptr{SCOTCH_Graph}, Ptr{SCOTCH_Mapping}, Ptr{SCOTCH_Mapping}, Cdouble, Ptr{SCOTCH_Num}, Ptr{Cint}), arg1, arg2, arg3, arg4, arg5, arg6)
+    ccall((:SCOTCH_graphRemapView, libscotch), Cint, (Ptr{SCOTCH_Graph}, Ptr{SCOTCH_Mapping}, Ptr{SCOTCH_Mapping}, Cdouble, Ptr{SCOTCH_Num}, Ptr{Libc.FILE}), arg1, arg2, arg3, arg4, arg5, arg6)
 end
 
 function SCOTCH_graphRemapViewRaw(arg1, arg2, arg3, arg4, arg5, arg6)
-    ccall((:SCOTCH_graphRemapViewRaw, libscotch), Cint, (Ptr{SCOTCH_Graph}, Ptr{SCOTCH_Mapping}, Ptr{SCOTCH_Mapping}, Cdouble, Ptr{SCOTCH_Num}, Ptr{Cint}), arg1, arg2, arg3, arg4, arg5, arg6)
+    ccall((:SCOTCH_graphRemapViewRaw, libscotch), Cint, (Ptr{SCOTCH_Graph}, Ptr{SCOTCH_Mapping}, Ptr{SCOTCH_Mapping}, Cdouble, Ptr{SCOTCH_Num}, Ptr{Libc.FILE}), arg1, arg2, arg3, arg4, arg5, arg6)
 end
 
 function SCOTCH_graphRepart(arg1, arg2, arg3, arg4, arg5, arg6, arg7)
@@ -459,11 +464,11 @@ function SCOTCH_graphRepartFixed(arg1, arg2, arg3, arg4, arg5, arg6, arg7)
 end
 
 function SCOTCH_graphTabLoad(arg1, arg2, arg3)
-    ccall((:SCOTCH_graphTabLoad, libscotch), Cint, (Ptr{SCOTCH_Graph}, Ptr{SCOTCH_Num}, Ptr{Cint}), arg1, arg2, arg3)
+    ccall((:SCOTCH_graphTabLoad, libscotch), Cint, (Ptr{SCOTCH_Graph}, Ptr{SCOTCH_Num}, Ptr{Libc.FILE}), arg1, arg2, arg3)
 end
 
 function SCOTCH_graphTabSave(arg1, arg2, arg3)
-    ccall((:SCOTCH_graphTabSave, libscotch), Cint, (Ptr{SCOTCH_Graph}, Ptr{SCOTCH_Num}, Ptr{Cint}), arg1, arg2, arg3)
+    ccall((:SCOTCH_graphTabSave, libscotch), Cint, (Ptr{SCOTCH_Graph}, Ptr{SCOTCH_Num}, Ptr{Libc.FILE}), arg1, arg2, arg3)
 end
 
 function SCOTCH_graphOrderInit(arg1, arg2, arg3, arg4, arg5, arg6, arg7)
@@ -475,19 +480,19 @@ function SCOTCH_graphOrderExit(arg1, arg2)
 end
 
 function SCOTCH_graphOrderLoad(arg1, arg2, arg3)
-    ccall((:SCOTCH_graphOrderLoad, libscotch), Cint, (Ptr{SCOTCH_Graph}, Ptr{SCOTCH_Ordering}, Ptr{Cint}), arg1, arg2, arg3)
+    ccall((:SCOTCH_graphOrderLoad, libscotch), Cint, (Ptr{SCOTCH_Graph}, Ptr{SCOTCH_Ordering}, Ptr{Libc.FILE}), arg1, arg2, arg3)
 end
 
 function SCOTCH_graphOrderSave(arg1, arg2, arg3)
-    ccall((:SCOTCH_graphOrderSave, libscotch), Cint, (Ptr{SCOTCH_Graph}, Ptr{SCOTCH_Ordering}, Ptr{Cint}), arg1, arg2, arg3)
+    ccall((:SCOTCH_graphOrderSave, libscotch), Cint, (Ptr{SCOTCH_Graph}, Ptr{SCOTCH_Ordering}, Ptr{Libc.FILE}), arg1, arg2, arg3)
 end
 
 function SCOTCH_graphOrderSaveMap(arg1, arg2, arg3)
-    ccall((:SCOTCH_graphOrderSaveMap, libscotch), Cint, (Ptr{SCOTCH_Graph}, Ptr{SCOTCH_Ordering}, Ptr{Cint}), arg1, arg2, arg3)
+    ccall((:SCOTCH_graphOrderSaveMap, libscotch), Cint, (Ptr{SCOTCH_Graph}, Ptr{SCOTCH_Ordering}, Ptr{Libc.FILE}), arg1, arg2, arg3)
 end
 
 function SCOTCH_graphOrderSaveTree(arg1, arg2, arg3)
-    ccall((:SCOTCH_graphOrderSaveTree, libscotch), Cint, (Ptr{SCOTCH_Graph}, Ptr{SCOTCH_Ordering}, Ptr{Cint}), arg1, arg2, arg3)
+    ccall((:SCOTCH_graphOrderSaveTree, libscotch), Cint, (Ptr{SCOTCH_Graph}, Ptr{SCOTCH_Ordering}, Ptr{Libc.FILE}), arg1, arg2, arg3)
 end
 
 function SCOTCH_graphOrderCompute(arg1, arg2, arg3)
@@ -547,11 +552,11 @@ function SCOTCH_meshExit(arg1)
 end
 
 function SCOTCH_meshLoad(arg1, arg2, arg3)
-    ccall((:SCOTCH_meshLoad, libscotch), Cint, (Ptr{SCOTCH_Mesh}, Ptr{Cint}, SCOTCH_Num), arg1, arg2, arg3)
+    ccall((:SCOTCH_meshLoad, libscotch), Cint, (Ptr{SCOTCH_Mesh}, Ptr{Libc.FILE}, SCOTCH_Num), arg1, arg2, arg3)
 end
 
 function SCOTCH_meshSave(arg1, arg2)
-    ccall((:SCOTCH_meshSave, libscotch), Cint, (Ptr{SCOTCH_Mesh}, Ptr{Cint}), arg1, arg2)
+    ccall((:SCOTCH_meshSave, libscotch), Cint, (Ptr{SCOTCH_Mesh}, Ptr{Libc.FILE}), arg1, arg2)
 end
 
 function SCOTCH_meshBuild(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12)
@@ -583,15 +588,15 @@ function SCOTCH_meshGraphDual(arg1, arg2, arg3)
 end
 
 function SCOTCH_meshGeomLoadHabo(arg1, arg2, arg3, arg4, arg5)
-    ccall((:SCOTCH_meshGeomLoadHabo, libscotch), Cint, (Ptr{SCOTCH_Mesh}, Ptr{SCOTCH_Geom}, Ptr{Cint}, Ptr{Cint}, Ptr{Cchar}), arg1, arg2, arg3, arg4, arg5)
+    ccall((:SCOTCH_meshGeomLoadHabo, libscotch), Cint, (Ptr{SCOTCH_Mesh}, Ptr{SCOTCH_Geom}, Ptr{Libc.FILE}, Ptr{Libc.FILE}, Ptr{Cchar}), arg1, arg2, arg3, arg4, arg5)
 end
 
 function SCOTCH_meshGeomLoadScot(arg1, arg2, arg3, arg4, arg5)
-    ccall((:SCOTCH_meshGeomLoadScot, libscotch), Cint, (Ptr{SCOTCH_Mesh}, Ptr{SCOTCH_Geom}, Ptr{Cint}, Ptr{Cint}, Ptr{Cchar}), arg1, arg2, arg3, arg4, arg5)
+    ccall((:SCOTCH_meshGeomLoadScot, libscotch), Cint, (Ptr{SCOTCH_Mesh}, Ptr{SCOTCH_Geom}, Ptr{Libc.FILE}, Ptr{Libc.FILE}, Ptr{Cchar}), arg1, arg2, arg3, arg4, arg5)
 end
 
 function SCOTCH_meshGeomSaveScot(arg1, arg2, arg3, arg4, arg5)
-    ccall((:SCOTCH_meshGeomSaveScot, libscotch), Cint, (Ptr{SCOTCH_Mesh}, Ptr{SCOTCH_Geom}, Ptr{Cint}, Ptr{Cint}, Ptr{Cchar}), arg1, arg2, arg3, arg4, arg5)
+    ccall((:SCOTCH_meshGeomSaveScot, libscotch), Cint, (Ptr{SCOTCH_Mesh}, Ptr{SCOTCH_Geom}, Ptr{Libc.FILE}, Ptr{Libc.FILE}, Ptr{Cchar}), arg1, arg2, arg3, arg4, arg5)
 end
 
 function SCOTCH_meshOrderInit(arg1, arg2, arg3, arg4, arg5, arg6, arg7)
@@ -603,15 +608,15 @@ function SCOTCH_meshOrderExit(arg1, arg2)
 end
 
 function SCOTCH_meshOrderSave(arg1, arg2, arg3)
-    ccall((:SCOTCH_meshOrderSave, libscotch), Cint, (Ptr{SCOTCH_Mesh}, Ptr{SCOTCH_Ordering}, Ptr{Cint}), arg1, arg2, arg3)
+    ccall((:SCOTCH_meshOrderSave, libscotch), Cint, (Ptr{SCOTCH_Mesh}, Ptr{SCOTCH_Ordering}, Ptr{Libc.FILE}), arg1, arg2, arg3)
 end
 
 function SCOTCH_meshOrderSaveMap(arg1, arg2, arg3)
-    ccall((:SCOTCH_meshOrderSaveMap, libscotch), Cint, (Ptr{SCOTCH_Mesh}, Ptr{SCOTCH_Ordering}, Ptr{Cint}), arg1, arg2, arg3)
+    ccall((:SCOTCH_meshOrderSaveMap, libscotch), Cint, (Ptr{SCOTCH_Mesh}, Ptr{SCOTCH_Ordering}, Ptr{Libc.FILE}), arg1, arg2, arg3)
 end
 
 function SCOTCH_meshOrderSaveTree(arg1, arg2, arg3)
-    ccall((:SCOTCH_meshOrderSaveTree, libscotch), Cint, (Ptr{SCOTCH_Mesh}, Ptr{SCOTCH_Ordering}, Ptr{Cint}), arg1, arg2, arg3)
+    ccall((:SCOTCH_meshOrderSaveTree, libscotch), Cint, (Ptr{SCOTCH_Mesh}, Ptr{SCOTCH_Ordering}, Ptr{Libc.FILE}), arg1, arg2, arg3)
 end
 
 function SCOTCH_meshOrderCompute(arg1, arg2, arg3)
@@ -647,11 +652,11 @@ function SCOTCH_orderSizeof()
 end
 
 function SCOTCH_randomLoad(arg1)
-    ccall((:SCOTCH_randomLoad, libscotch), Cint, (Ptr{Cint},), arg1)
+    ccall((:SCOTCH_randomLoad, libscotch), Cint, (Ptr{Libc.FILE},), arg1)
 end
 
 function SCOTCH_randomSave(arg1)
-    ccall((:SCOTCH_randomSave, libscotch), Cint, (Ptr{Cint},), arg1)
+    ccall((:SCOTCH_randomSave, libscotch), Cint, (Ptr{Libc.FILE},), arg1)
 end
 
 function SCOTCH_randomProc(arg1)
@@ -691,7 +696,7 @@ function SCOTCH_stratFree(arg1)
 end
 
 function SCOTCH_stratSave(arg1, arg2)
-    ccall((:SCOTCH_stratSave, libscotch), Cint, (Ptr{SCOTCH_Strat}, Ptr{Cint}), arg1, arg2)
+    ccall((:SCOTCH_stratSave, libscotch), Cint, (Ptr{SCOTCH_Strat}, Ptr{Libc.FILE}), arg1, arg2)
 end
 
 function SCOTCH_stratGraphBipart(arg1, arg2)
@@ -742,11 +747,11 @@ end
 
 const SCOTCH_NUMSTRING = "%d"
 
-const SCOTCH_VERSION = 7
+const SCOTCH_VERSION = SCOTCH_VERSION_NUM
 
-const SCOTCH_RELEASE = 0
+const SCOTCH_RELEASE = SCOTCH_RELEASE_NUM
 
-const SCOTCH_PATCHLEVEL = 4
+const SCOTCH_PATCHLEVEL = SCOTCH_PATCHLEVEL_NUM
 
 const SCOTCH_OPTIONNUMDETERMINISTIC = 0
 

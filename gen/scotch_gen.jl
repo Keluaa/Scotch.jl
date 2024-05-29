@@ -11,7 +11,8 @@ options = load_options(joinpath(@__DIR__, "generator.toml"))
 args = get_default_args()
 push!(args, "-I$include_dir")
 
-headers = [joinpath(include_dir, "scotch.h")]
+# 'scotch.h' does not include 'stdio.h' and therefore references to 'FILE*' are undefined.
+headers = [joinpath(@__DIR__, "include_stdio.h")]
 
 ctx = create_context(headers, args, options)
 
