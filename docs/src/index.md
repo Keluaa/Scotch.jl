@@ -51,6 +51,7 @@ graph_size
 graph_build
 graph_base_index
 graph_base_index!
+graph_data
 graph_dump
 graph_load
 graph_coarsen
@@ -76,6 +77,7 @@ graph_repart
 Mesh
 mesh_alloc
 mesh_build
+mesh_data
 mesh_load
 mesh_graph
 mesh_size
