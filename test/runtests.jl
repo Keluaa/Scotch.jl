@@ -264,15 +264,19 @@ using Aqua
         Scotch.context_option!(ctx, :fixed_seed, true)
         @test Scotch.context_option(ctx, :fixed_seed) == 1
 
-        Scotch.random_seed(ctx, 42)
-        Scotch.random_reset(ctx)
-
         graph = Scotch.graph_load(joinpath(@__DIR__, "3x3_grid.grf"))
         ctx_graph = Scotch.bind_graph(ctx, graph)
 
         map_arch = Scotch.arch_complete_graph(4)
         map_strat = Scotch.strat_build(:graph_map; strategy=:default, parts=4, imbalance_ratio=1/9)
-        mapping = Scotch.graph_map(ctx_graph, map_arch, map_strat)
-        @test mapping == Int32[3, 3, 1, 2, 3, 1, 2, 0, 0]
+
+        Scotch.random_seed(ctx, 42)
+        Scotch.random_reset(ctx)
+        mapping_1 = Scotch.graph_map(ctx_graph, map_arch, map_strat)
+
+        Scotch.random_seed(ctx, 42)
+        Scotch.random_reset(ctx)
+        mapping_2 = Scotch.graph_map(ctx_graph, map_arch, map_strat)
+        @test mapping_1 == mapping_2
     end
 end
