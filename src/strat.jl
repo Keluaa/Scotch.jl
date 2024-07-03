@@ -111,11 +111,13 @@ every `type`, see the manual for more info.
 `strategy` and `kwargs` are passed to [`strat_flags`](@ref).
 
 `type` is the strategy type:
-- `:graph_bipart` uses `SCOTCH_stratGraphClusterBuild`
-- `:graph_map` uses `SCOTCH_stratGraphMapBuild`
-- `:graph_part_overlap` uses `SCOTCH_stratGraphPartOvlBuild`
-- `:graph_order` uses `SCOTCH_stratGraphOrderBuild`
-- `:mesh_order` uses `SCOTCH_stratMeshOrderBuild`
+- `:implicit` uses the default strategy of the next call of any SCOTCH function requiring a strategy.
+  Note that the `Strat` will keep the same strategy afterwards.
+- `:graph_cluster` uses `SCOTCH_stratGraphClusterBuild`. Relies on `max_cluster_weight`, `min_edge_density` and `imbalance_ratio`.
+- `:graph_map` uses `SCOTCH_stratGraphMapBuild`. Relies on `parts` and `imbalance_ratio`.
+- `:graph_part_overlap` uses `SCOTCH_stratGraphPartOvlBuild`. Relies on `parts` and `imbalance_ratio`.
+- `:graph_order` uses `SCOTCH_stratGraphOrderBuild`. Relies on `level_nbr` and `imbalance_ratio`.
+- `:mesh_order` uses `SCOTCH_stratMeshOrderBuild`. Relies on `imbalance_ratio`.
 """
 function strat_build(type::Symbol;
     imbalance_ratio::Float64=0.0, parts=0,
@@ -125,7 +127,9 @@ function strat_build(type::Symbol;
     strat = strat_alloc()
     flagval = strat_flags(; strategy, kwargs...)
 
-    if type === :graph_bipart
+    if type === :implicit
+        # nothing to do (as per the manual, section 8.3.1)
+    elseif type === :graph_cluster
         @check LibScotch.SCOTCH_stratGraphClusterBuild(strat, flagval, max_cluster_weight, min_edge_density, imbalance_ratio)
     elseif type === :graph_map
         @check LibScotch.SCOTCH_stratGraphMapBuild(strat, flagval, parts, imbalance_ratio)

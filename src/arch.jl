@@ -6,6 +6,7 @@ Wrapper around a `SCOTCH_Arch` pointer.
 """
 mutable struct Arch
     ptr :: Ptr{LibScotch.SCOTCH_Arch}
+    parent :: Union{Nothing, Arch}
 end
 
 Base.cconvert(::Type{Ptr{LibScotch.SCOTCH_Arch}}, arch::Arch) = arch.ptr
@@ -20,7 +21,7 @@ Allocate a new [`Arch`](@ref) with `SCOTCH_archAlloc`, then initialize it with `
 Finalizers will properly call `SCOTCH_archExit` then `SCOTCH_memFree` once unused.
 """
 function arch_alloc()
-    arch = Arch(LibScotch.SCOTCH_archAlloc())
+    arch = Arch(LibScotch.SCOTCH_archAlloc(), nothing)
     @check LibScotch.SCOTCH_archInit(arch)
     finalizer(arch) do a
         LibScotch.SCOTCH_archExit(a)
@@ -86,6 +87,14 @@ function arch_name(arch::Arch)
 end
 
 
+"""
+    is_arch_variable(arch::Arch)
+
+`true` if `arch` has a variable size.
+"""
+is_arch_variable(arch::Arch) = LibScotch.SCOTCH_archVar(arch) == 1
+
+
 function arch_build(graph, strat::Union{Strat, Nothing}, target::Symbol, restrain::Union{Vector{SCOTCH_Num}, Nothing})
     arch = arch_alloc()
 
@@ -144,6 +153,9 @@ function arch_complete_graph(n_vertices; weights::Union{Vector{SCOTCH_Num}, Noth
     if isnothing(weights)
         @check LibScotch.SCOTCH_archCmplt(arch, n_vertices)
     else
+        if length(weights) != n_vertices
+            error("expected weights array to have $n_vertices elements, got: $(length(weights))")
+        end
         @check LibScotch.SCOTCH_archCmpltw(arch, n_vertices, weights)
     end
     variable && @check LibScotch.SCOTCH_archVcmplt(arch)
@@ -193,6 +205,9 @@ end
     arch_tree(levels::Vector{SCOTCH_Num}, link_cost::Vector{SCOTCH_Num})
 
 Allocate and initialize a new [`Arch`](@ref) for a tree topology with `SCOTCH_archTleaf`.
+
+The tree has `length(levels)` levels (excluding the leafs), each of them with `levels[i]` children
+per level node, and a link cost to the parent node of `link_cost[i]`.
 """
 function arch_tree(levels::Vector{SCOTCH_Num}, link_cost::Vector{SCOTCH_Num})
     arch = arch_alloc()
@@ -202,15 +217,23 @@ end
 
 
 """
-    arch_subset(arch::Arch, processors::Vector{SCOTCH_Num})
+    arch_subset(arch::Arch, processors::Vector{SCOTCH_Num}; one_index=true)
 
 Allocate and initialize a new [`Arch`](@ref) from a subset of `arch` including `processors` with `SCOTCH_archSub`.
+
+If `one_index == true`, `processors` are 1-based indices to the processors in the parent `arch`,
+otherwise they are 0-based and no conversion is done.
+
+The resulting `sub_arch` keeps a reference to the parent `arch`, to prevent it from being deallocated.
 """
-function arch_subset(arch::Arch, processors::Vector{SCOTCH_Num})
+function arch_subset(arch::Arch, processors::Vector{SCOTCH_Num}; one_index=true)
     sub_arch = arch_alloc()
-    @check LibScotch.SCOTCH_archSub(sub_arch, arch, length(processors), processors)
+    processors_indices = one_index ? (processors .- SCOTCH_Num(1)) : processors
+    @check LibScotch.SCOTCH_archSub(sub_arch, arch, length(processors), processors_indices)
+    sub_arch.parent = arch
     return sub_arch
 end
 
 
 # TODO: target domain handling routines (section 8.6)
+# TODO: SCOTCH_archLtleaf is unexported in 7.0.4
