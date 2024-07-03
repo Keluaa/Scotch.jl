@@ -1,3 +1,11 @@
+"""
+    Scotch
+
+Wrapper for the SCOTCH graph partitionning library.
+
+The official SCOTCH user manual is referenced everywhere is this documentation.
+You can get the user manual from the [official GitLab](https://gitlab.inria.fr/scotch/scotch/tree/master/doc).
+"""
 module Scotch
 
 include("../gen/LibScotch.jl")

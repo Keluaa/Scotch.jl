@@ -33,6 +33,7 @@ arch_alloc
 arch_load
 arch_size
 arch_name
+is_arch_variable
 arch_build
 arch_complete_graph
 arch_hypercube
