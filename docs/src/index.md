@@ -15,6 +15,10 @@ Therefore you can search any SCOTCH function from this page to know what its Jul
 All names starting with `SCOTCH_` are part of the C library.
 You can access all symbols defined in the C library through `Scotch.LibScotch`.
 
+```@docs
+Scotch
+```
+
 ## Strategy
 
 ```@docs
