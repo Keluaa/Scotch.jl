@@ -1,7 +1,7 @@
 name = "Scotch"
 uuid = "c8656ae5-b689-4c12-92d5-de0ad806c81d"
 authors = ["Keluaa <34173752+Keluaa@users.noreply.github.com> and contributors"]
-version = "1.1.0"
+version = "1.2.0"
 
 [deps]
 CEnum = "fa961155-64e5-5f13-b03f-caf6b980ea82"
