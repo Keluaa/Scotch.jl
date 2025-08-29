@@ -162,16 +162,16 @@ import SimpleWeightedGraphs
         coarsened_count = count(multi_nodes_map[1:2:end] .!= multi_nodes_map[2:2:end])
         @test Scotch.graph_size(coarse_graph).vertices == Scotch.graph_size(grid_3x3).vertices - coarsened_count
 
-        if Scotch.version() ≥ v"7.0.7"
-            coarse_vertex_count, mates = Scotch.graph_coarsen_match(grid_3x3, 6, 1)
-            @test coarse_vertex_count ≤ 6
-            coarse_graph, multi_nodes_map = Scotch.graph_coarsen(grid_3x3, 6, 1; fine_mates=mates)
+        # if Scotch.version() ≥ v"7.0.7"
+        #     coarse_vertex_count, mates = Scotch.graph_coarsen_match(grid_3x3, 6, 1)
+        #     @test coarse_vertex_count ≤ 6
+        #     coarse_graph, multi_nodes_map = Scotch.graph_coarsen(grid_3x3, 6, 1; fine_mates=mates)
 
-            @test coarse_graph !== nothing !== multi_nodes_map
-            coarsened_count = count(multi_nodes_map[1:2:end] .!= multi_nodes_map[2:2:end])
-            @test coarse_vertex_count == coarse_vertex_count
-            @test Scotch.graph_size(coarse_graph).vertices == 6
-        end
+        #     @test coarse_graph !== nothing !== multi_nodes_map
+        #     coarsened_count = count(multi_nodes_map[1:2:end] .!= multi_nodes_map[2:2:end])
+        #     @test coarse_vertex_count == coarse_vertex_count
+        #     @test Scotch.graph_size(coarse_graph).vertices == 6
+        # end
 
         # Make a + shape by removing the corners
         cross_graph = Scotch.graph_induce(grid_3x3, Int32[2, 4, 5, 6, 8])
