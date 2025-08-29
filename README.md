@@ -12,3 +12,5 @@ SCOTCH is downloaded through the [SCOTCH_jll](https://juliahub.com/ui/Packages/G
 therefore there is no need to build the library manually.
 [See here](https://docs.binarybuilder.org/stable/jll/#Overriding-the-artifacts-in-JLL-packages) to use
 a local installation instead.
+
+Extensions allow to convert to/from any `AbstractGraph` from [Graphs.jl](https://github.com/JuliaGraphs/Graphs.jl) and [SimpleWeightedGraphs.jl](https://github.com/JuliaGraphs/SimpleWeightedGraphs.jl).
