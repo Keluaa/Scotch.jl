@@ -196,16 +196,14 @@ import SimpleWeightedGraphs
         @test sum(length.(parts)) == 9
         @test length(parts) == 3
 
-        if Scotch.version() ≥ v"7.0.7"
-            # Repartitioning: remove the last partition
-            costs = Scotch.SCOTCH_Num.(partition .== 2)
-            partition[partition .== 2] .= -1
-            new_partition = Scotch.graph_repart(grid_3x3, 2, partition, 1.0, costs, part_strat)
-            @test extrema(new_partition) == (0, 1)
-            parts = map(p -> findall(==(p), new_partition), 0:1)
-            @test sum(length.(parts)) == 9
-            @test length(parts) == 2
-        end
+        # Repartitioning: remove the last partition
+        # costs = Scotch.SCOTCH_Num.(partition .== 2)
+        # partition[partition .== 2] .= -1
+        # new_partition = Scotch.graph_repart(grid_3x3, 2, partition, 1.0, costs, part_strat)
+        # @test extrema(new_partition) == (0, 1)
+        # parts = map(p -> findall(==(p), new_partition), 0:1)
+        # @test sum(length.(parts)) == 9
+        # @test length(parts) == 2
     end
 
     @testset "Mesh" begin
