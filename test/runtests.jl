@@ -1,6 +1,8 @@
 using Scotch
 using Test
 using Aqua
+import Graphs
+import SimpleWeightedGraphs
 
 @testset "Scotch.jl" begin
     @testset "Code quality (Aqua.jl)" begin
@@ -117,7 +119,7 @@ using Aqua
         Scotch.random_seed(0)
         Scotch.random_reset()
         n_colors, colors = Scotch.graph_color(grid_3x3)
-        @test length(colors) == 9
+        @test length(colors) == 9   
         @test n_colors == 5
 
         map_arch = Scotch.arch_complete_graph(4)
@@ -278,5 +280,36 @@ using Aqua
         Scotch.random_reset(ctx)
         mapping_2 = Scotch.graph_map(ctx_graph, map_arch, map_strat)
         @test mapping_1 == mapping_2
+    end
+
+    @testset "Graphs" begin
+        g = Graphs.path_graph(4)
+        sg = Scotch.graph_build(g; edge_weights=false)
+
+        g_data = Scotch.graph_data(sg)
+        @test g_data.index_start == 1
+        @test g_data.n_vertices == 4
+        @test g_data.n_arcs == 6
+        @test g_data.n_edges == 3
+        @test isnothing(g_data.vertices_weights)
+        @test isnothing(g_data.arcs_weights)
+
+        @test Graphs.SimpleGraph(sg) == g
+        @test Graphs.SimpleGraph(SimpleWeightedGraphs.SimpleWeightedGraph(sg)) == g
+
+        ew = [1, 2, 3]
+        vw = [1, 1, 2, 2]
+        gw = SimpleWeightedGraphs.SimpleWeightedGraph([1, 2, 3], [2, 3, 4], ew)
+        swg = Scotch.graph_build(gw; edge_weights=true, vertex_weights=vw)
+
+        g_data = Scotch.graph_data(swg)
+        @test g_data.index_start == 1
+        @test g_data.n_vertices == 4
+        @test g_data.n_arcs == 6
+        @test g_data.n_edges == 3
+        @test g_data.vertices_weights == vw
+        @test g_data.arcs_weights == [1, 1, 2, 2, 3, 3]
+
+        @test SimpleWeightedGraphs.SimpleWeightedGraph(swg) == gw
     end
 end

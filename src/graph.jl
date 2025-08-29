@@ -237,7 +237,7 @@ function graph_data(graph::Graph)
     adj_idx_end      = adj_idx_end_ptr[]      == C_NULL ? nothing : unsafe_wrap(Vector{SCOTCH_Num}, adj_idx_end_ptr[],      n_vertices[])
     vertices_weights = vertices_weights_ptr[] == C_NULL ? nothing : unsafe_wrap(Vector{SCOTCH_Num}, vertices_weights_ptr[], n_vertices[])
     vertices_labels  = vertices_labels_ptr[]  == C_NULL ? nothing : unsafe_wrap(Vector{SCOTCH_Num}, vertices_labels_ptr[],  n_vertices[])
-    adj_array        = adj_array_ptr[]        == C_NULL ? nothing : unsafe_wrap(Vector{SCOTCH_Num}, adj_array_ptr[],        n_arcs[])  # might be wrong?
+    adj_array        = adj_array_ptr[]        == C_NULL ? nothing : unsafe_wrap(Vector{SCOTCH_Num}, adj_array_ptr[],        n_arcs[])
     arcs_weights     = arcs_weights_ptr[]     == C_NULL ? nothing : unsafe_wrap(Vector{SCOTCH_Num}, arcs_weights_ptr[],     n_arcs[])
 
     return (;
