@@ -157,20 +157,21 @@ import SimpleWeightedGraphs
         @test stats.vertex_degree.min == 2
         @test stats.vertex_degree.max == 4
 
-        coarse_graph, multi_nodes_map = Scotch.graph_coarsen(grid_3x3, 6, 2/3)
+        coarse_graph, multi_nodes_map = Scotch.graph_coarsen(grid_3x3, 6, 1)
         @test coarse_graph !== nothing !== multi_nodes_map
         coarsened_count = count(multi_nodes_map[1:2:end] .!= multi_nodes_map[2:2:end])
         @test Scotch.graph_size(coarse_graph).vertices == Scotch.graph_size(grid_3x3).vertices - coarsened_count
 
-        @warn "Two-step coarsening tests disabled" maxlog=1
-        # coarse_vertex_count, mates = Scotch.graph_coarsen_match(grid_3x3, 6, 2/3)
-        # @test coarse_vertex_count ≤ 6
-        # coarse_graph, multi_nodes_map = Scotch.graph_coarsen(grid_3x3, 6, 2/3; fine_mates=mates)
+        if Scotch.version() ≥ v"7.0.7"
+            coarse_vertex_count, mates = Scotch.graph_coarsen_match(grid_3x3, 6, 1)
+            @test coarse_vertex_count ≤ 6
+            coarse_graph, multi_nodes_map = Scotch.graph_coarsen(grid_3x3, 6, 1; fine_mates=mates)
 
-        # @test coarse_graph !== nothing !== multi_nodes_map
-        # coarsened_count = count(multi_nodes_map[1:2:end] .!= multi_nodes_map[2:2:end])
-        # @test coarse_vertex_count == coarse_vertex_count
-        # @test Scotch.graph_size(coarse_graph).vertices == 6
+            @test coarse_graph !== nothing !== multi_nodes_map
+            coarsened_count = count(multi_nodes_map[1:2:end] .!= multi_nodes_map[2:2:end])
+            @test coarse_vertex_count == coarse_vertex_count
+            @test Scotch.graph_size(coarse_graph).vertices == 6
+        end
 
         # Make a + shape by removing the corners
         cross_graph = Scotch.graph_induce(grid_3x3, Int32[2, 4, 5, 6, 8])
@@ -187,7 +188,7 @@ import SimpleWeightedGraphs
         @test Scotch.graph_size(cross_graph) == (; vertices=5, edges=4*2)
         @test Scotch.graph_diameter(cross_graph) == 2
 
-        # Partitionning
+        # Partitioning
         part_strat = Scotch.strat_build(:implicit)
         partition = Scotch.graph_part(grid_3x3, 3, part_strat)
         @test extrema(partition) == (0, 2)
@@ -195,15 +196,16 @@ import SimpleWeightedGraphs
         @test sum(length.(parts)) == 9
         @test length(parts) == 3
 
-        @warn "Repartitionning tests disabled" maxlog=1
-        # Repartitionning: remove the last partition
-        # costs = Scotch.SCOTCH_Num.(partition .== 2)
-        # partition[partition .== 2] .= -1
-        # new_partition = Scotch.graph_repart(grid_3x3, 2, partition, 1.0, costs, part_strat)
-        # @test extrema(new_partition) == (0, 1)
-        # parts = map(p -> findall(==(p), new_partition), 0:1)
-        # @test sum(length.(parts)) == 9
-        # @test length(parts) == 2
+        if Scotch.version() ≥ v"7.0.7"
+            # Repartitioning: remove the last partition
+            costs = Scotch.SCOTCH_Num.(partition .== 2)
+            partition[partition .== 2] .= -1
+            new_partition = Scotch.graph_repart(grid_3x3, 2, partition, 1.0, costs, part_strat)
+            @test extrema(new_partition) == (0, 1)
+            parts = map(p -> findall(==(p), new_partition), 0:1)
+            @test sum(length.(parts)) == 9
+            @test length(parts) == 2
+        end
     end
 
     @testset "Mesh" begin
